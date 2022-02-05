@@ -6,6 +6,68 @@
   
   <script>
 
+    const handleResponse = async (response, ) => {
+      const content = document.querySelector('#content');
+      switch(response.status) {
+        case 200: 
+          content.innerHTML = `<b>Success</b>`;
+          break;
+        case 400: 
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 401: 
+          content.innerHTML = `<b>Unauthorized</b>`;
+          break;
+        case 403: 
+          content.innerHTML = `<b>Forbidden</b>`;
+          break;
+        case 404:
+          content.innerHTML = `<b>Resource Not Found</b>`;
+          break;
+        case 500:
+          content.innerHTML = `<b>Internal Server Error</b>`;
+          break;
+        case 501:
+          content.innerHTML = `<b>Not Ipmlemented</b>`;
+          break;
+        default: 
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+      response.text().then((resText) => {
+        let contentType = response.headers.get('Content-Type');
+        if(contentType === 'application/json') {
+          //Parse the json back into a javascript object, and display the data.
+          let parsedResponse = JSON.parse(resText);
+          content.innerHTML += `<p>Message: ${parsedResponse.message}</p>`;
+          console.log(parsedResponse);
+        } else if (contentType === 'text/xml') { //If the server sent back xml
+          //Parse the xml into a document and select the data out.
+          let parsedResponse = new window.DOMParser().parseFromString(resText, 'text/xml');
+          content.innerHTML += `<p>Message: ${parsedResponse.querySelector('message').textContent}</p>`;
+          console.log(parsedResponse);
+        }
+
+      })
+    }
+
+    const sendFetchRequest = async (url, acceptedType) => {
+
+      let response = await fetch(url, {method:'GET',headers: {'Accept': acceptedType},});
+      handleResponse(response);
+    }
+
+    const init = () => {
+      const sendButton = document.querySelector("#send");
+      const page = document.querySelector("#page");
+      const type = document.querySelector("#type");
+      sendButton.addEventListener('click',function()
+      {
+        sendFetchRequest(page.value,type.value);
+        //document.querySelector("#content").innerHTML = `${page.value} and ${type.value}`;
+      });
+    }
+    window.onload = init;
   </script>
 </head>
 <body>
